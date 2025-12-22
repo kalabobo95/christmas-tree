@@ -41,6 +41,6 @@
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   },
-  "homepage": "https://kalabobo95.github.io/kalabobo95.github.io/",
-  "base": "/kalabobo95.github.io/"
+  "homepage": "https://kalabobo95.github.io/christmas-tree/",
+  "base": "/christmas-tree/"
 }
