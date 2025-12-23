@@ -37,6 +37,7 @@ const App: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [currentMusicIndex, setCurrentMusicIndex] = useState(0);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  const [audioInitialized, setAudioInitialized] = useState(false);
   const [showOkMessage, setShowOkMessage] = useState(false);
 
   const [modules, setModules] = useState<TreeModuleData[]>(() => {
@@ -99,65 +100,106 @@ const App: React.FC = () => {
     }
   }, []);
 
+  // Toggle music playback
+  const toggleMusic = useCallback(() => {
+    if (!audioRef.current) {
+      // Initialize audio if not exists
+      audioRef.current = new Audio(MUSIC_FILES[currentMusicIndex]);
+      audioRef.current.volume = 0.5;
+      audioRef.current.loop = false;
+      
+      // Add event listener for when song ends
+      audioRef.current.addEventListener('ended', () => {
+        setCurrentMusicIndex((prevIndex) => (prevIndex + 1) % MUSIC_FILES.length);
+      });
+      
+      setAudioInitialized(true);
+    }
+    
+    if (audioRef.current) {
+      if (isMusicPlaying) {
+        // Pause music
+        audioRef.current.pause();
+        setIsMusicPlaying(false);
+      } else {
+        // Play music
+        audioRef.current.play()
+          .then(() => {
+            setIsMusicPlaying(true);
+          })
+          .catch(err => {
+            console.error('Audio play failed:', err);
+            alert('音乐播放失败，请确保浏览器允许音频播放');
+          });
+      }
+    }
+  }, [isMusicPlaying, currentMusicIndex]);
+
   // Music playback effect - start playing when tree is fully revealed
   useEffect(() => {
     const isFullyRevealed = appStage === 2;
     
-    if (isFullyRevealed && !isMusicPlaying) {
+    if (isFullyRevealed && !isMusicPlaying && !audioInitialized) {
       // Initialize audio element if not exists
       if (!audioRef.current) {
         audioRef.current = new Audio(MUSIC_FILES[currentMusicIndex]);
         audioRef.current.volume = 0.5;
+        audioRef.current.loop = false;
+        
+        // Add event listener for when song ends
+        audioRef.current.addEventListener('ended', () => {
+          setCurrentMusicIndex((prevIndex) => (prevIndex + 1) % MUSIC_FILES.length);
+        });
+        
+        setAudioInitialized(true);
       }
       
-      // Play music
-      audioRef.current.play().catch(err => {
-        console.log('Audio play failed:', err);
-      });
-      setIsMusicPlaying(true);
-    } else if (!isFullyRevealed && isMusicPlaying) {
-      // Pause music if tree is not fully revealed
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-      setIsMusicPlaying(false);
+      // Try to play music automatically
+      audioRef.current.play()
+        .then(() => {
+          setIsMusicPlaying(true);
+        })
+        .catch(err => {
+          console.log('Auto-play failed (browser policy):', err);
+          // Auto-play failed, user needs to click the button
+        });
     }
-    
-    return () => {
-      // Cleanup on unmount
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-    };
-  }, [appStage, isMusicPlaying]);
+  }, [appStage, isMusicPlaying, audioInitialized, currentMusicIndex]);
 
   // Effect to change music when currentMusicIndex changes
   useEffect(() => {
-    if (audioRef.current && isMusicPlaying) {
-      // Remove old event listener
-      const handleMusicEnd = () => {
-        setCurrentMusicIndex((prevIndex) => (prevIndex + 1) % MUSIC_FILES.length);
-      };
+    if (audioRef.current && audioInitialized) {
+      const wasPlaying = isMusicPlaying;
+      
+      // Pause current music
+      audioRef.current.pause();
       
       // Change music source
       audioRef.current.src = MUSIC_FILES[currentMusicIndex];
       
-      // Add new event listener for this song
-      audioRef.current.addEventListener('ended', handleMusicEnd);
-      
-      // Play the new song
-      audioRef.current.play().catch(err => {
-        console.log('Audio play failed:', err);
-      });
-      
-      // Cleanup function to remove event listener
-      return () => {
-        if (audioRef.current) {
-          audioRef.current.removeEventListener('ended', handleMusicEnd);
-        }
-      };
+      // If was playing, play the new song
+      if (wasPlaying) {
+        audioRef.current.play()
+          .then(() => {
+            setIsMusicPlaying(true);
+          })
+          .catch(err => {
+            console.error('Audio play failed:', err);
+            setIsMusicPlaying(false);
+          });
+      }
     }
-  }, [currentMusicIndex, isMusicPlaying]);
+  }, [currentMusicIndex, audioInitialized]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
 
 
 
@@ -243,29 +285,28 @@ const App: React.FC = () => {
         </div>
       )}
 
-      <div className="absolute top-6 left-6 z-10 pointer-events-none">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-red-500 via-orange-500 via-green-500 via-blue-500 to-purple-500 bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
-          Neon Xmas Tree
-        </h1>
-        <div className="mt-2 space-y-1">
-          {appStage === 0 && <p className="text-yellow-400 font-bold animate-pulse">✌️ Make a Peace sign to ignite the star!</p>}
-          {appStage === 1 && <p className="text-green-400 font-bold animate-pulse">✌️ Peace sign again to reveal the tree!</p>}
-          {appStage === 2 && (
-            <>
-              <p className="text-slate-400 font-light">
-                🖐 Open: Scatter | ✊ Fist: Gather | 👈/👉 Move: Rotate | ☝ Point: Cycle Photos | 👌 OK: Show Message
-              </p>
-              <p className="text-slate-500 text-xs">✌️ Peace to toggle stages (debug)</p>
-            </>
-          )}
-        </div>
-      </div>
+
 
       {appStage === 2 && (
-        <div className="absolute bottom-6 right-6 z-10 flex flex-col gap-4 items-end">
-          <div className="bg-black/60 backdrop-blur-md px-4 py-2 rounded-lg border border-white/10 text-[10px] uppercase tracking-widest text-slate-400">
-            Status: <span className="text-green-400 font-bold ml-1">{gesture}</span>
-          </div>
+        <div className="absolute bottom-6 right-6 z-10">
+          {/* Music Control Button */}
+          <button
+            onClick={toggleMusic}
+            className="group relative w-12 h-12 bg-gradient-to-r from-red-500 via-pink-500 to-red-500 hover:from-red-600 hover:via-pink-600 hover:to-red-600 text-white font-bold rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 border-2 border-white/20 flex items-center justify-center"
+            style={{
+              boxShadow: '0 0 20px rgba(255, 0, 100, 0.5), 0 0 40px rgba(255, 0, 100, 0.3)',
+            }}
+          >
+            <span className="text-2xl">
+              {isMusicPlaying ? '⏸' : '🎵'}
+            </span>
+            {isMusicPlaying && (
+              <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+              </span>
+            )}
+          </button>
         </div>
       )}
 
