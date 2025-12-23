@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Stars, PerspectiveCamera } from '@react-three/drei';
@@ -10,22 +9,22 @@ import { MODULE_COUNT, COLORS, TREE_HEIGHT, TREE_RADIUS } from './constants';
 
 // Fixed images array - place your images in public/images/ folder
 const FIXED_IMAGES = [
-  '/images/1.jpg',
-  '/images/2.jpg',
-  '/images/3.jpg',
-  '/images/4.jpg',
-  '/images/5.jpg',
-  '/images/6.jpg',
-  '/images/7.jpg',
-  '/images/8.jpg',
-  '/images/9.jpg',
+  `${import.meta.env.BASE_URL}images/1.jpg`,
+  `${import.meta.env.BASE_URL}images/2.jpg`,
+  `${import.meta.env.BASE_URL}images/3.jpg`,
+  `${import.meta.env.BASE_URL}images/4.jpg`,
+  `${import.meta.env.BASE_URL}images/5.jpg`,
+  `${import.meta.env.BASE_URL}images/6.jpg`,
+  `${import.meta.env.BASE_URL}images/7.jpg`,
+  `${import.meta.env.BASE_URL}images/8.jpg`,
+  `${import.meta.env.BASE_URL}images/9.jpg`,
 ];
 
 // Music files array - place your music in public/music/ folder
 const MUSIC_FILES = [
-  '/music/all-I-want-for-christmas-is-you.mp3',
-  '/music/jingle-bells.mp3',
-  '/music/beautiful-christmas.mp3',
+  `${import.meta.env.BASE_URL}music/all-I-want-for-christmas-is-you.mp3`,
+  `${import.meta.env.BASE_URL}music/jingle-bells.mp3`,
+  `${import.meta.env.BASE_URL}music/beautiful-christmas.mp3`,
 ];
 
 const App: React.FC = () => {
