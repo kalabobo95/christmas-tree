@@ -17,7 +17,7 @@
     "cap:open:android": "cap open android",
     "build:mobile": "vite build && cap sync",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist --repo https://github.com/kalabobo95/christmas-tree.git"
+    "deploy": "gh-pages -d dist --repo https://github.com/kalabobo95/christmas-tree.git -b gh-pages"
   },
   "dependencies": {
     "@capacitor/android": "^6.0.0",
