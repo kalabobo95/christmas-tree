@@ -209,7 +209,7 @@ const App: React.FC = () => {
                  textShadow: '0 0 8px rgba(255, 182, 193, 0.6)',
                  fontFamily: "'Georgia', 'Times New Roman', serif"
                }}>
-              I like you. It's not because you look good, but because of the feelings you give me at special moments. You make me feel things that others can't. As for your appearance, I like that too. 💕
+              I like you. It’s not just because you’re good-looking, but because of the way you make me feel when it truly matters. You bring out emotions in me that no one else can. And of course, I like your appearance too.💕
             </p>
           </div>
         </div>
